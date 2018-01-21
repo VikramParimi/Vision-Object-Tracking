@@ -2,8 +2,7 @@
 
 The aim of the project is to detect rectangles in a video frame and track the observations once detected by outlining them with a bounding box.
 
-![N|Solid](http://ibb.co/fdGwKG) ![N|Solid](http://ibb.co/cddyYb) ![N|Solid](http://ibb.co/mGUSRw) ![N|Solid](http://ibb.co/fMnstb)
-
+![N|Solid](http://preview.ibb.co/cwEizG/IMG_4040.png) ![N|Solid](http://preview.ibb.co/jh1wKG/IMG_4041.png) ![N|Solid](http://preview.ibb.co/kjuu6w/IMG_4042.png) ![N|Solid](http://preview.ibb.co/eoBJYb/IMG_4043.png)
 
 # Getting Started
 
@@ -53,14 +52,12 @@ print(error)
 }
 ```
 
-# Known issues
+## Known issues
 
-## Hold on for future updates
+Rectangle detection on touch is not implemented
+Tracking the reactangle is not implemented
 
-### Rectangle detection on touch is not implemented
-### Tracking the reactangle is not implemented
-
-## Also if you would like to contribute please take a pull from develop branch and submit a PR for your changes.
+### Also if you would like to contribute please take a pull from develop branch and submit a PR for your changes.
 
 
 
