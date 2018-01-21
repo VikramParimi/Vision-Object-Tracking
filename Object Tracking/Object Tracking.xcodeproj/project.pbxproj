@@ -13,6 +13,7 @@
 		FBD85952201359AD00A1C408 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FBD85951201359AD00A1C408 /* Assets.xcassets */; };
 		FBD85955201359AD00A1C408 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FBD85953201359AD00A1C408 /* LaunchScreen.storyboard */; };
 		FBD85960201359AE00A1C408 /* Object_TrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD8595F201359AE00A1C408 /* Object_TrackingTests.swift */; };
+		FBDF6CFA20153A76008AF89D /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = FBDF6CF920153A76008AF89D /* Readme.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +37,7 @@
 		FBD8595B201359AE00A1C408 /* Object TrackingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Object TrackingTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FBD8595F201359AE00A1C408 /* Object_TrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object_TrackingTests.swift; sourceTree = "<group>"; };
 		FBD85961201359AE00A1C408 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FBDF6CF920153A76008AF89D /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = Readme.md; path = ../Readme.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 		FBD8593E201359AD00A1C408 = {
 			isa = PBXGroup;
 			children = (
+				FBDF6CF920153A76008AF89D /* Readme.md */,
 				FBD85949201359AD00A1C408 /* Object Tracking */,
 				FBD8595E201359AE00A1C408 /* Object TrackingTests */,
 				FBD85948201359AD00A1C408 /* Products */,
@@ -181,6 +184,7 @@
 			files = (
 				FBD85955201359AD00A1C408 /* LaunchScreen.storyboard in Resources */,
 				FBD85952201359AD00A1C408 /* Assets.xcassets in Resources */,
+				FBDF6CFA20153A76008AF89D /* Readme.md in Resources */,
 				FBD85950201359AD00A1C408 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
