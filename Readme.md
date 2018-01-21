@@ -2,7 +2,7 @@
 
 The aim of the project is to detect rectangles in a video frame and track the observations once detected by outlining them with a bounding box.
 
-![N|Solid](http://preview.ibb.co/cwEizG/IMG_4040.png) ![N|Solid](http://preview.ibb.co/jh1wKG/IMG_4041.png) ![N|Solid](http://preview.ibb.co/kjuu6w/IMG_4042.png) ![N|Solid](http://preview.ibb.co/eoBJYb/IMG_4043.png)
+![N|Solid](http://image.ibb.co/gvxveG/IMG_4040.png) ![N|Solid](http://image.ibb.co/faPmmw/IMG_4041.png) ![N|Solid](http://image.ibb.co/jKQRmw/IMG_4042.png) ![N|Solid](http://image.ibb.co/cX65eG/IMG_4043.png)
 
 # Getting Started
 
