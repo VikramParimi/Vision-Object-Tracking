@@ -61,6 +61,3 @@ print(error)
 ### Tracking the reactangle is not implemented
 
 ## Also if you would like to contribute please take a pull from develop branch and submit a PR for your changes.
-
-
-
