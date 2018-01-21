@@ -2,7 +2,7 @@
 //  Object_TrackingTests.swift
 //  Object TrackingTests
 //
-//  Created by Pairmi, Vikram (US - Bengaluru) on 1/20/18.
+//  Created by Parimi, Vikram (US - Bengaluru) on 1/20/18.
 //  Copyright © 2018 vikram. All rights reserved.
 //
 
