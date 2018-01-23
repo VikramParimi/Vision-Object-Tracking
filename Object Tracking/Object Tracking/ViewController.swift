@@ -107,6 +107,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     //MARK: Vision Completion Handlers
     
     func handleRectangles(request: VNRequest, error: Error?)  {
+        detectingRectangles = true
         DispatchQueue.main.async {
             self.drawVisionRequestResults(results: request.results as? [VNRectangleObservation])
         }
@@ -161,14 +162,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         layer.path = path.cgPath
         return layer
     }
-    
-    //TODO: Identify rectangles on touch
+
     //MARK: Touch Methods
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if detectingRectangles {
             return
         }
+        
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
