@@ -18,6 +18,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private let queue = DispatchQueue(label: "com.vision.videoqueue")
     
     private var detectingRectangles = false
+    private var observation: VNRectangleObservation?
     private var rectangleLayer: CAShapeLayer?
     
     @IBOutlet weak var captureView: UIView!
@@ -125,6 +126,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             self.captureView.layer.addSublayer(self.rectangleLayer!)
         }
     }
+    
+    //MARK: Object Tracking Methods using VNSequenceHandler
     
     func exifOrientationFromDeviceOrientation() -> CGImagePropertyOrientation {
         return CGImagePropertyOrientation(rawValue: UInt32(UIDevice.current.orientation.rawValue))!
