@@ -17,8 +17,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     private var previewLayer: AVCaptureVideoPreviewLayer!
     private let queue = DispatchQueue(label: "com.vision.videoqueue")
     
-    private var detectingRectangles = false
-    private var observation: VNRectangleObservation?
+    private var lastObservation: VNRectangleObservation?
+    private let sequenceHandler = VNSequenceRequestHandler()
     private var rectangleLayer: CAShapeLayer?
     
     @IBOutlet weak var captureView: UIView!
@@ -85,53 +85,105 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-
-        var requestOptions: [VNImageOption : Any] = [:]
-
-        if let cameraIntrinsicData = CMGetAttachment(sampleBuffer, kCMSampleBufferAttachmentKey_CameraIntrinsicMatrix, nil) {
-            requestOptions = [.cameraIntrinsics: cameraIntrinsicData]
-        }
-
+        
         let exifOrientation = self.exifOrientationFromDeviceOrientation()
 
-        DispatchQueue.global(qos: .background).async {
-            let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation:exifOrientation, options: requestOptions)
-            do {
-                try imageRequestHandler.perform(self.requests)
-            } catch {
-                print(error)
+        guard self.lastObservation != nil else {
+            var requestOptions: [VNImageOption : Any] = [:]
+            
+            if let cameraIntrinsicData = CMGetAttachment(sampleBuffer, kCMSampleBufferAttachmentKey_CameraIntrinsicMatrix, nil) {
+                requestOptions = [.cameraIntrinsics: cameraIntrinsicData]
             }
+            
+            DispatchQueue.global(qos: .background).async {
+                let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation:exifOrientation, options: requestOptions)
+                do {
+                    try imageRequestHandler.perform(self.requests)
+                } catch {
+                    print(error)
+                }
+            }
+            return
+        }
+        
+        //Track the detected rectangle here
+        
+        let observation = self.lastObservation
+        
+        let trackRequest = VNTrackRectangleRequest(rectangleObservation: observation!, completionHandler: self.handleRectangles)
+    //    let trackRequest = VNTrackObjectRequest(detectedObjectObservation: observation!, completionHandler: self.handleSequenceRequestUpdate)
+        trackRequest.trackingLevel = .accurate
+        
+        do {
+            try self.sequenceHandler.perform([trackRequest], on: pixelBuffer, orientation: exifOrientation)
+        } catch {
+            print(error)
         }
     }
     
     //MARK: Vision Completion Handlers
     
     func handleRectangles(request: VNRequest, error: Error?)  {
-        detectingRectangles = true
         DispatchQueue.main.async {
             self.drawVisionRequestResults(results: request.results as? [VNRectangleObservation])
         }
     }
     
+    func handleSequenceRequestUpdate(request: VNRequest, error: Error?) {
+        DispatchQueue.main.async {
+            guard let newObservation = request.results?.first as? VNRectangleObservation else {return}
+            
+            self.lastObservation = newObservation
+            
+            guard newObservation.confidence >= 0.5 else {
+                if let layer = self.rectangleLayer {
+                    layer.removeFromSuperlayer()
+                    self.rectangleLayer = nil
+                }
+                return
+            }
+            
+            let points = [newObservation.topLeft, newObservation.topRight, newObservation.bottomRight, newObservation.bottomLeft]
+            let convertedPoints = points.map { self.convertFromCamera($0) }
+            self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
+            self.captureView.layer.addSublayer(self.rectangleLayer!)
+        }
+    }
+    
     func drawVisionRequestResults(results: [VNRectangleObservation]?) {
-        
         if let layer = self.rectangleLayer {
             layer.removeFromSuperlayer()
             self.rectangleLayer = nil
         }
         
         if let observation = results?.first {
+            self.lastObservation = observation
             let points = [observation.topLeft, observation.topRight, observation.bottomRight, observation.bottomLeft]
             let convertedPoints = points.map { self.convertFromCamera($0) }
-            self.rectangleLayer = self.drawPolygon(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
+            self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
             self.captureView.layer.addSublayer(self.rectangleLayer!)
         }
     }
     
-    //MARK: Object Tracking Methods using VNSequenceHandler
-    
     func exifOrientationFromDeviceOrientation() -> CGImagePropertyOrientation {
         return CGImagePropertyOrientation(rawValue: UInt32(UIDevice.current.orientation.rawValue))!
+    }
+    
+    //MARK: Bounding Box Drawing Methods
+    
+    func drawSequence(request: VNRequest, error: Error?)  {
+        
+        if let layer = self.rectangleLayer {
+            layer.removeFromSuperlayer()
+            self.rectangleLayer = nil
+        }
+        
+        if let observation = request.results?.first as? VNRectangleObservation {
+            let points = [observation.topLeft, observation.topRight, observation.bottomRight, observation.bottomLeft]
+            let convertedPoints = points.map { self.convertFromCamera($0) }
+            self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
+            self.captureView.layer.addSublayer(self.rectangleLayer!)
+        }
     }
     
     func convertFromCamera(_ point: CGPoint) -> CGPoint {
@@ -149,7 +201,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
-    private func drawPolygon(_ points: [CGPoint], color: CGColor) -> CAShapeLayer {
+    private func drawBoundingBox(_ points: [CGPoint], color: CGColor) -> CAShapeLayer {
         let layer = CAShapeLayer()
         layer.fillColor = #colorLiteral(red: 0.4506933627, green: 0.5190293554, blue: 0.9686274529, alpha: 0.2050513699)
         layer.strokeColor = color
@@ -161,23 +213,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
         layer.path = path.cgPath
         return layer
-    }
-
-    //MARK: Touch Methods
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if detectingRectangles {
-            return
-        }
-        
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
-    }
-    
-    func identifyRectangle(location: CGPoint) {
-        
     }
 }
 
