@@ -13,19 +13,18 @@ import AVFoundation
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
 
     private var requests = [VNRequest]()
+    private var lastObservation: VNRectangleObservation?
+    private var sequenceHandler = VNSequenceRequestHandler()
+    private var rectangleLayer: CAShapeLayer?
+    
     private let session = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer!
     private let queue = DispatchQueue(label: "com.vision.videoqueue")
-    
-    private var lastObservation: VNRectangleObservation?
-    private let sequenceHandler = VNSequenceRequestHandler()
-    private var rectangleLayer: CAShapeLayer?
     
     @IBOutlet weak var captureView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         
         //Vision rectangle detection request setup
         self.setupVision()
@@ -79,7 +78,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         self.requests = [rectanglesDetectionRequest]
     }
     
-    //MARK: Rectangle Detection and observation
+    //MARK: Rectangle Detection and Tracking
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -108,10 +107,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         //Track the detected rectangle here
         
-        let observation = self.lastObservation
-        
-        let trackRequest = VNTrackRectangleRequest(rectangleObservation: observation!, completionHandler: self.handleRectangles)
-    //    let trackRequest = VNTrackObjectRequest(detectedObjectObservation: observation!, completionHandler: self.handleSequenceRequestUpdate)
+        let trackRequest = VNTrackRectangleRequest(rectangleObservation: self.lastObservation!, completionHandler: self.handleSequenceRequestUpdate)
         trackRequest.trackingLevel = .accurate
         
         do {
@@ -129,9 +125,25 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
+    func drawVisionRequestResults(results: [VNRectangleObservation]?) {
+        if let layer = self.rectangleLayer {
+            layer.removeFromSuperlayer()
+            self.rectangleLayer = nil
+        }
+        
+        if let observation = results?.first {
+            self.lastObservation = observation
+            let points = [observation.topLeft, observation.topRight, observation.bottomRight, observation.bottomLeft]
+            let convertedPoints = points.map { self.convertFromCamera($0) }
+            self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
+            self.captureView.layer.addSublayer(self.rectangleLayer!)
+        }
+    }
+    
     func handleSequenceRequestUpdate(request: VNRequest, error: Error?) {
         DispatchQueue.main.async {
-            guard let newObservation = request.results?.first as? VNRectangleObservation else {return}
+            guard let newObservation = request.results?.first as? VNRectangleObservation else {
+                return}
             
             self.lastObservation = newObservation
             
@@ -144,21 +156,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             }
             
             let points = [newObservation.topLeft, newObservation.topRight, newObservation.bottomRight, newObservation.bottomLeft]
-            let convertedPoints = points.map { self.convertFromCamera($0) }
-            self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
-            self.captureView.layer.addSublayer(self.rectangleLayer!)
-        }
-    }
-    
-    func drawVisionRequestResults(results: [VNRectangleObservation]?) {
-        if let layer = self.rectangleLayer {
-            layer.removeFromSuperlayer()
-            self.rectangleLayer = nil
-        }
-        
-        if let observation = results?.first {
-            self.lastObservation = observation
-            let points = [observation.topLeft, observation.topRight, observation.bottomRight, observation.bottomLeft]
             let convertedPoints = points.map { self.convertFromCamera($0) }
             self.rectangleLayer = self.drawBoundingBox(convertedPoints, color: #colorLiteral(red: 0.3328347607, green: 0.236689759, blue: 1, alpha: 1))
             self.captureView.layer.addSublayer(self.rectangleLayer!)
